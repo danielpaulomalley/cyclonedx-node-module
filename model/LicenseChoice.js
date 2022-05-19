@@ -22,6 +22,7 @@ const fs = require('fs')
 const License = require('./License')
 const AttachmentText = require('./AttachmentText')
 const CycloneDXObject = require('./CycloneDXObject')
+const LicenseChecker = require('./LicenseChecker')
 
 class LicenseChoice extends CycloneDXObject {
   constructor (pkg, includeLicenseText = true) {
@@ -60,8 +61,21 @@ class LicenseChoice extends CycloneDXObject {
         }
         return licenseObject
       })
+    } else {
+      var l = LicenseChecker(pkg)
+      if (!l) return null
+      const licenseObject = new License()
+      if (spdxLicenses.some(v => { return l === v })) {
+        licenseObject.id = l
+      } else {
+        licenseObject.name = l
+      }
+      if (includeLicenseText) {
+        this.addLicenseText(pkg, l, licenseObject)
+      }
+      return [licenseObject]
     }
-    return null
+
   }
 
   /**
